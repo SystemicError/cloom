@@ -98,6 +98,34 @@
      (recur (drop 10 lump-ints)
             (concat things (list (read-thing lump-ints)))))))
 
+(defn read-linedef [linedef-ints]
+  "Reads a 14 byte (in int format) linedef."
+  (let [start-vertex (from-int16 (take 2 linedef-ints))
+        end-vertex (from-int16 (take 2 (drop 2 linedef-ints)))
+        flags (from-int16 (take 2 (drop 4 linedef-ints)))
+        special-type (from-int16 (take 2 (drop 6 linedef-ints)))
+        sector-tag (from-int16 (take 2 (drop 8 linedef-ints)))
+        front-sidedef (from-int16 (take 2 (drop 10 linedef-ints)))
+        back-sidedef (from-int16 (take 2 (drop 12 linedef-ints)))
+        ]
+    {:start-vertex start-vertex
+     :end-vertex end-vertex
+     :flags flags
+     :special-type special-type
+     :sector-tag sector-tag
+     :front-sidedef front-sidedef
+     :back-sidedef back-sidedef
+     }))
+
+(defn read-linedefs
+  "Read a LINEDEFS lump."
+  ([lump-ints] (read-linedefs lump-ints (list )))
+  ([lump-ints linedefs]
+   (if (empty? lump-ints)
+     linedefs
+     (recur (drop 14 lump-ints)
+            (concat linedefs (list (read-linedef lump-ints)))))))
+
 (defn read-lump [hexstring directory-entry]
   "Reads the hexstring for a lump given a directory entry."
   (let [hs (take (* 2 (:size directory-entry))
@@ -107,7 +135,7 @@
         ]
     (case lump-name
       "THINGS" (read-things lump-ints)
-      "LINEDEFS" "LINEDEFS not implemented."
+      "LINEDEFS" (read-linedefs lump-ints)
       "SIDEDEFS" "SIDEDEFS not implemented."
       "VERTEXES" "VERTEXES not implemented."
       "SEGS" "SEGS not implemented."
