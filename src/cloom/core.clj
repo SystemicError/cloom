@@ -126,6 +126,32 @@
      (recur (drop 14 lump-ints)
             (concat linedefs (list (read-linedef lump-ints)))))))
 
+(defn read-sidedef [sidedef-ints]
+  "Reads a 30 byte (in int format) sidedef."
+  (let [x-offset (from-int16 (take 2 sidedef-ints))
+        y-offset (from-int16 (take 2 (drop 2 sidedef-ints)))
+        upper-texture-name (re-find #"^[A-Za-z0-9-]*" (apply str (map char (take 8 (drop 4 sidedef-ints)))))
+        lower-texture-name (re-find #"^[A-Za-z0-9-]*" (apply str (map char (take 8 (drop 12 sidedef-ints)))))
+        middle-texture-name (re-find #"^[A-Za-z0-9-]*" (apply str (map char (take 8 (drop 20 sidedef-ints)))))
+        sector-number (from-int16 (take 2 (drop 28 sidedef-ints)))
+        ]
+    {:x-offset x-offset
+     :y-offset y-offset
+     :upper-texture-name upper-texture-name
+     :lower-texture-name lower-texture-name
+     :middle-texture-name middle-texture-name
+     :sector-number sector-number
+     }))
+
+(defn read-sidedefs
+  "Read a SIDEDEFS lump."
+  ([lump-ints] (read-sidedefs lump-ints (list )))
+  ([lump-ints sidedefs]
+   (if (empty? lump-ints)
+     sidedefs
+     (recur (drop 30 lump-ints)
+            (concat sidedefs (list (read-sidedef lump-ints)))))))
+
 (defn read-lump [hexstring directory-entry]
   "Reads the hexstring for a lump given a directory entry."
   (let [hs (take (* 2 (:size directory-entry))
@@ -136,7 +162,7 @@
     (case lump-name
       "THINGS" (read-things lump-ints)
       "LINEDEFS" (read-linedefs lump-ints)
-      "SIDEDEFS" "SIDEDEFS not implemented."
+      "SIDEDEFS" (read-sidedefs lump-ints)
       "VERTEXES" "VERTEXES not implemented."
       "SEGS" "SEGS not implemented."
       "SSECTORS" "SSECTORS not implemented."
