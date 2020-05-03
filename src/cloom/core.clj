@@ -152,6 +152,52 @@
      (recur (drop 30 lump-ints)
             (concat sidedefs (list (read-sidedef lump-ints)))))))
 
+(defn read-vertex [vertex-ints]
+  "Reads a 4 byte (in int format) vertex."
+  (let [x-position (from-int16 (take 2 vertex-ints))
+        y-position (from-int16 (take 2 (drop 2 vertex-ints)))
+        ]
+    {:x-position x-position
+     :y-position y-position
+     }))
+
+(defn read-vertexes
+  "Read a VERTEXES lump."
+  ([lump-ints] (read-vertexes lump-ints (list )))
+  ([lump-ints vertexes]
+   (if (empty? lump-ints)
+     vertexes
+     (recur (drop 4 lump-ints)
+            (concat vertexes (list (read-vertex lump-ints)))))))
+
+(defn read-sector [sector-ints]
+  "Reads a 26 byte (in int format) sector."
+  (let [floor-height (from-int16 (take 2 sector-ints))
+        ceiling-height (from-int16 (take 2 (drop 2 sector-ints)))
+        floor-texture-name (re-find #"^[A-Za-z0-9-]*" (apply str (map char (take 8 (drop 4 sector-ints)))))
+        ceiling-texture-name (re-find #"^[A-Za-z0-9-]*" (apply str (map char (take 8 (drop 12 sector-ints)))))
+        light-level (from-int16 (take 2 (drop 20 sector-ints)))
+        sector-type (from-int16 (take 2 (drop 22 sector-ints)))
+        tag-number (from-int16 (take 2 (drop 24 sector-ints)))
+        ]
+    {:floor-height floor-height
+     :ceiling-height ceiling-height
+     :floor-texture-name floor-texture-name
+     :ceiling-texture-name ceiling-texture-name
+     :light-level light-level
+     :sector-type sector-type
+     :tag-number tag-number
+     }))
+
+(defn read-sectors
+  "Read a SECTORS lump."
+  ([lump-ints] (read-sectors lump-ints (list )))
+  ([lump-ints sectors]
+   (if (empty? lump-ints)
+     sectors
+     (recur (drop 26 lump-ints)
+            (concat sectors (list (read-sector lump-ints)))))))
+
 (defn read-lump [hexstring directory-entry]
   "Reads the hexstring for a lump given a directory entry."
   (let [hs (take (* 2 (:size directory-entry))
@@ -163,11 +209,11 @@
       "THINGS" (read-things lump-ints)
       "LINEDEFS" (read-linedefs lump-ints)
       "SIDEDEFS" (read-sidedefs lump-ints)
-      "VERTEXES" "VERTEXES not implemented."
+      "VERTEXES" (read-vertexes lump-ints)
       "SEGS" "SEGS not implemented."
       "SSECTORS" "SSECTORS not implemented."
       "NODES" "NODES not implemented."
-      "SECTORS" "SECTORS not implemented."
+      "SECTORS" (read-sectors lump-ints)
       "REJECT" "REJECT not implemented."
       "BLOCKMAP" "BLOCKMAP not implemented."
       "BEHAVIOR" "BEHAVIOR not implemented."
