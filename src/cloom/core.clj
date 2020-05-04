@@ -88,16 +88,6 @@
      :flags flags
      }))
 
-
-(defn read-things
-  "Read a THING lump."
-  ([lump-ints] (read-things lump-ints (list )))
-  ([lump-ints things]
-   (if (empty? lump-ints)
-     things
-     (recur (drop 10 lump-ints)
-            (concat things (list (read-thing lump-ints)))))))
-
 (defn read-linedef [linedef-ints]
   "Reads a 14 byte (in int format) linedef."
   (let [start-vertex (from-int16 (take 2 linedef-ints))
@@ -117,15 +107,6 @@
      :back-sidedef back-sidedef
      }))
 
-(defn read-linedefs
-  "Read a LINEDEFS lump."
-  ([lump-ints] (read-linedefs lump-ints (list )))
-  ([lump-ints linedefs]
-   (if (empty? lump-ints)
-     linedefs
-     (recur (drop 14 lump-ints)
-            (concat linedefs (list (read-linedef lump-ints)))))))
-
 (defn read-sidedef [sidedef-ints]
   "Reads a 30 byte (in int format) sidedef."
   (let [x-offset (from-int16 (take 2 sidedef-ints))
@@ -143,15 +124,6 @@
      :sector-number sector-number
      }))
 
-(defn read-sidedefs
-  "Read a SIDEDEFS lump."
-  ([lump-ints] (read-sidedefs lump-ints (list )))
-  ([lump-ints sidedefs]
-   (if (empty? lump-ints)
-     sidedefs
-     (recur (drop 30 lump-ints)
-            (concat sidedefs (list (read-sidedef lump-ints)))))))
-
 (defn read-vertex [vertex-ints]
   "Reads a 4 byte (in int format) vertex."
   (let [x-position (from-int16 (take 2 vertex-ints))
@@ -160,15 +132,6 @@
     {:x-position x-position
      :y-position y-position
      }))
-
-(defn read-vertexes
-  "Read a VERTEXES lump."
-  ([lump-ints] (read-vertexes lump-ints (list )))
-  ([lump-ints vertexes]
-   (if (empty? lump-ints)
-     vertexes
-     (recur (drop 4 lump-ints)
-            (concat vertexes (list (read-vertex lump-ints)))))))
 
 (defn read-sector [sector-ints]
   "Reads a 26 byte (in int format) sector."
@@ -189,14 +152,17 @@
      :tag-number tag-number
      }))
 
-(defn read-sectors
-  "Read a SECTORS lump."
-  ([lump-ints] (read-sectors lump-ints (list )))
-  ([lump-ints sectors]
+(defn parse-entries
+  "Read a lump with a given reader function, whose entries are entry-size long."
+  ([reader entry-size lump-ints] (parse-entries reader entry-size lump-ints (list )))
+  ([reader entry-size lump-ints entries]
    (if (empty? lump-ints)
-     sectors
-     (recur (drop 26 lump-ints)
-            (concat sectors (list (read-sector lump-ints)))))))
+     entries
+     (recur reader
+            entry-size
+            (drop entry-size lump-ints)
+            (concat entries (list (reader lump-ints)))))))
+
 
 (defn read-lump [hexstring directory-entry]
   "Reads the hexstring for a lump given a directory entry."
@@ -206,14 +172,14 @@
         lump-name (re-find #"^[A-Z0-9]*" (:name directory-entry))
         ]
     (case lump-name
-      "THINGS" (read-things lump-ints)
-      "LINEDEFS" (read-linedefs lump-ints)
-      "SIDEDEFS" (read-sidedefs lump-ints)
-      "VERTEXES" (read-vertexes lump-ints)
+      "THINGS" (parse-entries read-thing 10 lump-ints)
+      "LINEDEFS" (parse-entries read-linedef 14 lump-ints)
+      "SIDEDEFS" (parse-entries read-sidedef 30 lump-ints)
+      "VERTEXES" (parse-entries read-vertex 4 lump-ints)
       "SEGS" "SEGS not implemented."
       "SSECTORS" "SSECTORS not implemented."
       "NODES" "NODES not implemented."
-      "SECTORS" (read-sectors lump-ints)
+      "SECTORS" (parse-entries read-sector 26 lump-ints)
       "REJECT" "REJECT not implemented."
       "BLOCKMAP" "BLOCKMAP not implemented."
       "BEHAVIOR" "BEHAVIOR not implemented."
