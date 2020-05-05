@@ -150,4 +150,127 @@
           sectors (nth lumps 10)
           out-hs (map-to-wad-hexstring "MAP01" things linedefs sidedefs vertexes sectors)
           ]
-      (spit "test.wad.hex" out-hs))))
+      (spit "test_copied.wad.hex" out-hs))
+    ))
+
+(deftest custom-map-test
+  (testing "Custom map test fail."
+    (let [things (list 
+                   ; player start
+                   {:x-position 16
+                    :y-position 16
+                    :angle-facing 0
+                    :thing-type 1 
+                    :flags 0x7
+                    }
+                   ; barrel
+                   {:x-position 64
+                    :y-position 64
+                    :angle-facing 0
+                    :thing-type 2035
+                    :flags 0x7
+                    })
+          linedefs (list
+                     ; SW-NW
+                     {:start-vertex 0
+                      :end-vertex 1
+                      :flags 0x1
+                      :special-type 0
+                      :sector-tag 0
+                      :front-sidedef 0
+                      :back-sidedef 0xffff ;none
+                      }
+                     ; NW-NE
+                     {:start-vertex 1
+                      :end-vertex 2
+                      :flags 0x1
+                      :special-type 0
+                      :sector-tag 0
+                      :front-sidedef 1
+                      :back-sidedef 0xffff ;none
+                      }
+                     ; NE-SE
+                     {:start-vertex 2
+                      :end-vertex 3
+                      :flags 0x1
+                      :special-type 0
+                      :sector-tag 0
+                      :front-sidedef 2
+                      :back-sidedef 0xffff ;none
+                      }
+                     ; NE-SW
+                     {:start-vertex 3
+                      :end-vertex 0
+                      :flags 0x1
+                      :special-type 0
+                      :sector-tag 0
+                      :front-sidedef 3
+                      :back-sidedef 0xffff ;none
+                      })
+          sidedefs (list
+                     ; SW-NW
+                     {:x-offset 0
+                      :y-offset 0
+                      :upper-texture-name ""
+                      :lower-texture-name ""
+                      :middle-texture-name "BRONZE1"
+                      :sector-number 0
+                      }
+                     ; NW-NE
+                     {:x-offset 0
+                      :y-offset 0
+                      :upper-texture-name ""
+                      :lower-texture-name ""
+                      :middle-texture-name "BRONZE2"
+                      :sector-number 0
+                      }
+                     ; NE-SE
+                     {:x-offset 0
+                      :y-offset 0
+                      :upper-texture-name ""
+                      :lower-texture-name ""
+                      :middle-texture-name "TEKGREN1"
+                      :sector-number 0
+                      }
+                     ; SE-SW
+                     {:x-offset 0
+                      :y-offset 0
+                      :upper-texture-name ""
+                      :lower-texture-name ""
+                      :middle-texture-name "TEKGREN2"
+                      :sector-number 0
+                      })
+          vertexes (list
+                     ; SW
+                     {:x-position 0
+                      :y-position 0}
+                     ; NW
+                     {:x-position 0 
+                      :y-position 256}
+                     ; NE
+                     {:x-position 256
+                      :y-position 256}
+                     ; SE
+                     {:x-position 256
+                      :y-position 0}
+                     )
+          sectors (list
+                    {:floor-height 0
+                     :ceiling-height 64
+                     :floor-texture-name "FLAT2"
+                     :ceiling-texture-name "CEIL1_2"
+                     :light-level 255
+                     :sector-type 0
+                     :tag-number 0
+                     })
+          hs (map-to-wad-hexstring "MAP01" things linedefs sidedefs vertexes sectors)
+          ]
+      (is (= nil (println (str "Thing-ints:\n" (into [] (things-to-ints things))))))
+      (is (= nil (println (str "Linedef-ints:\n" (into [] (linedefs-to-ints linedefs))))))
+      (is (= nil (println (str "Sidedef-ints:\n" (into [] (sidedefs-to-ints sidedefs))))))
+      (is (= nil (println (str "Vertex-ints:\n" (into [] (vertexes-to-ints vertexes))))))
+      (is (= nil (println (str "Sector-ints:\n" (into [] (sectors-to-ints sectors))))))
+      (is (not= nil hs))
+      (is (= nil (spit "test_room.wad.hex" hs)))
+    )))
+
