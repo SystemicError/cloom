@@ -14,14 +14,22 @@
                   :angle-facing 315 ; we have to start at an angle, because you can only "slide" of NS/EW walls for some reason
                   :thing-type 1 
                   :flags 0x7
-                  })
+                  }
+                 ; teleport destination (same as player start)
+                 {:x-position 16
+                  :y-position 496
+                  :angle-facing 315 ; we have to start at an angle, because you can only "slide" of NS/EW walls for some reason
+                  :thing-type 14
+                  :flags 0x7
+                  }
+                 )
         linedefs (list
                    ; SW-NW wall
                    {:start-vertex 0
                     :end-vertex 1
                     :flags 0x1
-                    :special-type 0
-                    :sector-tag 0
+                    :special-type 211 ; can switch platform height, repeatable toggle
+                    :sector-tag 1
                     :front-sidedef 0
                     :back-sidedef 0xffff ;none
                     }
@@ -47,8 +55,8 @@
                    {:start-vertex 3
                     :end-vertex 0
                     :flags 0x1
-                    :special-type 211 ; can switch platform height, repeatable toggle
-                    :sector-tag 1
+                    :special-type 0
+                    :sector-tag 0
                     :front-sidedef 3
                     :back-sidedef 0xffff ;none
                     }
@@ -67,7 +75,7 @@
                     :flags 0x1
                     :special-type 0
                     :sector-tag 0
-                    :front-sidedef 6 ; inside pillar
+                    :front-sidedef 6
                     :back-sidedef 0xffff ;none
                     }
                    ; SE-S wall
@@ -76,12 +84,48 @@
                     :flags 0x1
                     :special-type 0
                     :sector-tag 0
-                    :front-sidedef 7 ; inside pillar
+                    :front-sidedef 7 
                     :back-sidedef 0xffff ;none
+                    }
+                   ; teleport region (faces outward)
+                   {:start-vertex 0
+                    :end-vertex 5
+                    :flags 0x0
+                    :special-type 97; teleporter
+                    :sector-tag 0
+                    :front-sidedef 8
+                    :back-sidedef 12
+                    }
+                   ; teleport region (faces outward)
+                   {:start-vertex 5
+                    :end-vertex 7
+                    :flags 0x0
+                    :special-type 97; teleporter
+                    :sector-tag 0
+                    :front-sidedef 9
+                    :back-sidedef 13
+                    }
+                   ; W teleport region (faces outward)
+                   {:start-vertex 7
+                    :end-vertex 6
+                    :flags 0x0
+                    :special-type 97; teleporter
+                    :sector-tag 0
+                    :front-sidedef 10
+                    :back-sidedef 14
+                    }
+                   ; W teleport region (faces outward)
+                   {:start-vertex 6
+                    :end-vertex 0
+                    :flags 0x0
+                    :special-type 97; teleporter
+                    :sector-tag 0
+                    :front-sidedef 11
+                    :back-sidedef 15
                     }
                    )
         sidedefs (list
-                   ; SW-NW
+                   ; room SW-NW (0)
                    {:x-offset 0
                     :y-offset 0
                     :upper-texture-name "-"
@@ -145,6 +189,70 @@
                     :middle-texture-name "BRONZE2"
                     :sector-number 1
                     }
+                   ; teleport region w outward (8)
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region s outward
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region e outward
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region n outward
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region w inward (12)
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region s inward
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region e inward
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
+                   ; teleport region n inward
+                   {:x-offset 0
+                    :y-offset 0
+                    :upper-texture-name "TEKGREN2"
+                    :lower-texture-name "CEMENT9"
+                    :middle-texture-name "-"
+                    :sector-number 2
+                    }
                    )
         vertexes (list
                    ; SW of room (0)
@@ -165,6 +273,12 @@
                    ; SE of room (5)
                    {:x-position 512
                     :y-position 0}
+                   ; NW teleport region (6)
+                   {:x-position 0
+                    :y-position 32}
+                   ; NE teleport region (7)
+                   {:x-position 512
+                    :y-position 32}
                    )
         sectors (list
                   ; W
@@ -177,13 +291,22 @@
                    :tag-number 0
                    }
                   ; E
-                  {:floor-height 22;32
+                  {:floor-height 0 ; can be toggled to ceiling
                    :ceiling-height 256
                    :floor-texture-name "FLAT5"
                    :ceiling-texture-name "CEIL1_3"
                    :light-level 255
                    :sector-type 0
                    :tag-number 1
+                   }
+                  ; teleporter pad
+                  {:floor-height 16
+                   :ceiling-height 256
+                   :floor-texture-name "GATE1"
+                   :ceiling-texture-name "CEIL1_2"
+                   :light-level 255
+                   :sector-type 0
+                   :tag-number 0
                    }
                   )
         hs (map-to-wad-hexstring "MAP01" things linedefs sidedefs vertexes sectors)
